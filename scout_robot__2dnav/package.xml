@@ -1,71 +1,32 @@
 <?xml version="1.0"?>
-<package format="2">
+<package>
   <name>scout_robot__2dnav</name>
-  <version>0.0.0</version>
-  <description>The scout_robot__2dnav package</description>
+  <version>0.6.10</version>
+  <description>Autonomous mapping and navigation demos for the Clearpath Husky</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="elias@todo.todo">elias</maintainer>
+  <author email="pmukherj@clearpathrobotics.com">Prasenjit Mukherjee</author>
+  <author email="paul@bovbel.com">Paul Bovbel</author>
 
+  <maintainer email="tbaltovski@clearpathrobotics.com">Tony Baltovski</maintainer>
 
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>BSD</license>
 
+  <url type="website">http://ros.org/wiki/husky_navigation</url>
+  <url type="bugtracker">https://github.com/husky/husky/issues</url>
+  <url type="repository">https://github.com/husky/husky</url>
 
-  <!-- Url tags are optional, but multiple are allowed, one per tag -->
-  <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/scout_robot__2dnav</url> -->
-
-
-  <!-- Author tags are optional, multiple are allowed, one per tag -->
-  <!-- Authors do not have to be maintainers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
-
-  <!-- The *depend tags are used to specify dependencies -->
-  <!-- Dependencies can be catkin packages or system dependencies -->
-  <!-- Examples: -->
-  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
-  <!--   <depend>roscpp</depend> -->
-  <!--   Note that this is equivalent to the following: -->
-  <!--   <build_depend>roscpp</build_depend> -->
-  <!--   <exec_depend>roscpp</exec_depend> -->
-  <!-- Use build_depend for packages you need at compile time: -->
-  <!--   <build_depend>message_generation</build_depend> -->
-  <!-- Use build_export_depend for packages you need in order to build against this package: -->
-  <!--   <build_export_depend>message_generation</build_export_depend> -->
-  <!-- Use buildtool_depend for build tool packages: -->
-  <!--   <buildtool_depend>catkin</buildtool_depend> -->
-  <!-- Use exec_depend for packages you need at runtime: -->
-  <!--   <exec_depend>message_runtime</exec_depend> -->
-  <!-- Use test_depend for packages you need only for testing: -->
-  <!--   <test_depend>gtest</test_depend> -->
-  <!-- Use doc_depend for packages you need only for building documentation: -->
-  <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>move_base</build_depend>
-  <build_depend>my_odom_configuration_dep</build_depend>
-  <build_depend>my_sensor_configuration_dep</build_depend>
-  <build_depend>my_tf_configuration_dep</build_depend>
-  <build_export_depend>move_base</build_export_depend>
-  <build_export_depend>my_odom_configuration_dep</build_export_depend>
-  <build_export_depend>my_sensor_configuration_dep</build_export_depend>
-  <build_export_depend>my_tf_configuration_dep</build_export_depend>
-  <exec_depend>move_base</exec_depend>
-  <exec_depend>my_odom_configuration_dep</exec_depend>
-  <exec_depend>my_sensor_configuration_dep</exec_depend>
-  <exec_depend>my_tf_configuration_dep</exec_depend>
+  <build_depend>roslaunch</build_depend>
+  <run_depend>amcl</run_depend>
+  <!-- Disabling till package is released -->
+  <!-- <run_depend>frontier_exploration</run_depend> -->
+  <run_depend>gmapping</run_depend>
+  <run_depend>map_server</run_depend>
+  <run_depend>move_base</run_depend>
+  <run_depend>navfn</run_depend>
+  <run_depend>base_local_planner</run_depend>
+  <run_depend>dwa_local_planner</run_depend>
 
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
   </export>
 </package>
