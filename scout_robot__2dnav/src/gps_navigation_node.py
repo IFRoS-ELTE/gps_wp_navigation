@@ -187,7 +187,9 @@ class Gps_Navigation:
 
     def read_gps_points(self):
         file_path = self.package_path + "/media/gps_coordinates.txt"
-
+        if not os.path.exists(file_path):
+            print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
+            return
         self.waypoints_gps = []
         self.waypoints_cart = []
 

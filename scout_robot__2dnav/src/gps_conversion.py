@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import utm
-from shapely.geometry import Point, Polygon
+# from shapely.geometry import Point, Polygon
 
 
 class LatLonToCartesianConverter(object):
