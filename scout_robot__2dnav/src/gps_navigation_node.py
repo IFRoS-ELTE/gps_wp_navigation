@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import rospy
 from gps_conversion import LatLonToCartesianConverter
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, Imu
 from nav_msgs.msg import Odometry
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point, Quaternion
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, Float64MultiArray
 from pynput import keyboard
 import tf
 import rospkg
@@ -13,6 +13,7 @@ import math
 import os
 from geometry_msgs.msg import PoseStamped
 import numpy as np
+import threading
 
 
 class Gps_Navigation:
@@ -20,6 +21,8 @@ class Gps_Navigation:
     def __init__(self):
         # initialize variables
         self.initialize_frame = True
+        # Initilaize the state of the robot
+        self.lock = threading.Lock()
         # gps and odom paths array
         self.gps_path = []
         self.odom_path = []
@@ -50,6 +53,7 @@ class Gps_Navigation:
         self.gps_path_pub = rospy.Publisher("/gps_path", MarkerArray, queue_size=10)
         self.odom_path_pub = rospy.Publisher("/odom_path", MarkerArray, queue_size=10)
         self.waypoint_viz = rospy.Publisher("/waypoint_viz", MarkerArray, queue_size=10)
+
         self.move_goal = rospy.Publisher(
             "/move_base_simple/goal", PoseStamped, queue_size=1
         )
@@ -61,13 +65,13 @@ class Gps_Navigation:
         self.gps_data_sub = rospy.Subscriber(
             "/navsat/fix", NavSatFix, self.gps_callback
         )
-        self.odom_sub = rospy.Subscriber(
-            "/odometry/filtered", Odometry, self.odom_callback
-        )
-
-        self.gps_rate_timer = rospy.Timer(rospy.Duration(1), self.gps_rate_callback)
+        self.gps_data_sub = rospy.Subscriber("/gnss", NavSatFix, self.gps_callback)
+        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.odom_callback)
+        # rospy.Subscriber("/imu/data", Imu, imu_callback)
+        self.gps_rate_timer = rospy.Timer(rospy.Duration(5), self.gps_rate_callback)
         self.start_nav = False
-        self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
+
+        # self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
 
     def gps_callback(self, data):
 
@@ -194,7 +198,6 @@ class Gps_Navigation:
     def on_press(self, key):
         try:
             if key.char == "~":
-                pass
                 self.save_gps_coordinates()
         except AttributeError:
             pass
@@ -212,6 +215,15 @@ class Gps_Navigation:
         rospy.loginfo(f"Saved GPS coordinates: {self.latitude}, {self.longitude}")
         self.read_gps_points()
 
+    def imu_callback(self, msg):
+        orientation = msg.orientation
+        orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
+
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(orientation_list)
+
+        self.yaw = np.array([self.yaw]).reshape(1, 1)
+        self.heading_update()
+
     def read_gps_points(self):
         file_path = self.package_path + "/media/gps_coordinates.txt"
 
@@ -224,6 +236,7 @@ class Gps_Navigation:
                 lat, lon = line.split(",")
                 self.latitude = float(lat)
                 self.longitude = float(lon)
+
                 self.gps_x, self.gps_y = self.conv.ll_to_cartesian(
                     self.latitude, self.longitude
                 )
@@ -265,9 +278,10 @@ class Gps_Navigation:
     def waypoint_navigation(self, event):
         if self.waypoints_cart == [] and self.start_nav:
             self.read_gps_points()
-        waypoint_length = len(self.waypoints_cart)
-        final_goal = self.waypoints_cart[-1]
-        if self.count < waypoint_length - 1:
+
+        elif self.count < len(self.waypoints_cart) - 1:
+            waypoint_length = len(self.waypoints_cart)
+            final_goal = self.waypoints_cart[-1]
             for waypoint in self.waypoints_cart:
                 # print("waypoint ", waypoint)
                 goal = PoseStamped()
@@ -290,11 +304,37 @@ class Gps_Navigation:
                         self.goal_reached = True
                         self.count += 1
 
+    def heading_update(self):
+        # Create a row vector of zeros of size 1 x 3*num_poses
+        self.compass_Vk = np.diag([1])
+        # define the covariance matrix of the compass
+        self.compass_Rk = np.diag([0.01**2])
+        # print("imu update")
+        Hk = np.array([0, 0, 1])
+        predicted_compass_meas = self.xk[-1]
+        # Compute the kalman gain
+        K = (
+            self.Pk
+            @ Hk.T
+            @ np.linalg.inv(
+                (Hk @ self.Pk @ Hk.T)
+                + (self.compass_Vk @ self.compass_Rk @ self.compass_Vk.T)
+            )
+        )
+        # Compute the innovation
+        innovation = np.array(
+            self.wrap_angle(self.yaw[0] - predicted_compass_meas)
+        ).reshape(1, 1)
+
+        I = np.eye(len(self.xk))
+        with self.lock:
+            self.xk = self.xk + K @ innovation
+            self.Pk = (I - K @ Hk) @ self.Pk @ (I - K @ Hk).T
+
     def update_filter(self):
         # Kalman filter update
         Hk = np.array([[1, 0, 0], [0, 1, 0]])
         gps_measurement = np.array([self.gps_x, self.gps_y]).reshape(2, 1)
-
         K = self.P @ Hk.T @ np.linalg.inv(Hk @ self.P @ Hk.T + self.Rs)
         self.xk = self.xk + K @ (gps_measurement - Hk @ self.xk)
         self.P = (np.eye(3) - K @ Hk) @ self.P
