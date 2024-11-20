@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-from gps_conversion import LatLonToCartesianConverter
+from gps_conversion import LatLonToCartesianConverter as converter
 from sensor_msgs.msg import NavSatFix, Imu
 from nav_msgs.msg import Odometry
 from visualization_msgs.msg import Marker, MarkerArray
@@ -19,8 +19,18 @@ import threading
 class Gps_Navigation:
 
     def __init__(self):
+
+
+        ##############
+        self.prev_pose = None
+        self.current_pose = None
+        ##############
+
+        self.x = 0
+        self.y = 0
         # initialize variables
         self.initialize_frame = True
+        self.num_cart_pts = 0
         # Initilaize the state of the robot
         self.lock = threading.Lock()
         # gps and odom paths array
@@ -36,19 +46,25 @@ class Gps_Navigation:
         self.P = np.eye(3) * 0.1
         # Get the current package path
         rospack = rospkg.RosPack()
-        self.package_path = rospack.get_path(
-            "scout_robot__2dnav"
-        )  # Replace 'your_package_name' with the actual package name
+        self.package_path = rospack.get_path("scout_robot__2dnav")
+        # Replace 'your_package_name' with the actual package name
 
         # Start listening for keyboard events
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
         self.goal_reached = False
+
+
+        self.conv = None
+
         # publishers
         # gps and odom path publishers
         self.gps_odom = rospy.Publisher("/gps_odom", Odometry, queue_size=10)
+
+        self.gps_xy_pub = rospy.Publisher("/gps_xy", Marker, queue_size=10)
+
         self.gps_odom_filtered = rospy.Publisher(
-            "/gps_odom/filtered", Odometry, queue_size=10
+            "/gps_odom/filtered", Odometry, queue_size=10#! not used
         )
         self.gps_path_pub = rospy.Publisher("/gps_path", MarkerArray, queue_size=10)
         self.odom_path_pub = rospy.Publisher("/odom_path", MarkerArray, queue_size=10)
@@ -62,16 +78,16 @@ class Gps_Navigation:
         )
 
         # subscribers
-        self.gps_data_sub = rospy.Subscriber(
-            "/navsat/fix", NavSatFix, self.gps_callback
-        )
         self.gps_data_sub = rospy.Subscriber("/gnss", NavSatFix, self.gps_callback)
-        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.odom_callback)
+        self.odom_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.odom_callback) #! change back to /odom
         # rospy.Subscriber("/imu/data", Imu, imu_callback)
         self.gps_rate_timer = rospy.Timer(rospy.Duration(5), self.gps_rate_callback)
         self.start_nav = False
 
         # self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
+        rospy.Timer(rospy.Duration(5), self.save_gps_xy)
+
+
 
     def gps_callback(self, data):
 
@@ -84,7 +100,7 @@ class Gps_Navigation:
             self.anchor_lon = self.longitude
             self.initialize_frame = False
 
-            self.conv = LatLonToCartesianConverter(self.anchor_lat, self.anchor_lon)
+            self.conv = converter(self.anchor_lat, self.anchor_lon)
             self.start_nav = True
 
         self.gps_x, self.gps_y = self.conv.ll_to_cartesian(
@@ -125,9 +141,68 @@ class Gps_Navigation:
 
     def gps_rate_callback(self, event):
         self.gps_path.append((self.gps_x, self.gps_y))
-        self.publish_gps_path()
+        # self.publish_gps_path()
+
         self.odom_path.append((self.x, self.y))
         self.publish_odom_path()
+
+    def save_gps_xy(self, event):
+        if self.conv is not None:
+            x, y= self.conv.ll_to_cartesian(self.latitude, self.longitude)
+
+            #save to a file
+            dir_path = os.path.join(self.package_path, "gps_carts")
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
+            file_path = os.path.join(dir_path, "xy.txt")
+            file_path1 = os.path.join(dir_path, "ll.txt")
+            self.current_pose = (self.x, self.y)
+            # if self.prev_pose is None:
+            #     self.prev_pose = self.current_pose
+            #     ### save once
+            #     with open(file_path, "a") as file:
+            #         file.write(f"{x}, {y}\n")
+            #     with open(file_path1, "a") as file:
+            #         file.write(f"{self.latitude}, {self.longitude}\n")
+            #     return
+            # distance = math.sqrt((self.current_pose[0] - self.prev_pose[0]) ** 2 + (self.current_pose[1] - self.prev_pose[1]) ** 2)
+            # if distance < 0.5:
+            #     return
+        # else:
+            with open(file_path, "a") as file:
+                file.write(f"{x}, {y}\n")
+            with open(file_path1, "a") as file:
+                file.write(f"{self.latitude}, {self.longitude}\n")
+                # self.prev_pose = self.current_pose
+
+            rospy.loginfo(f"Saved ({x}, {y})")
+            rospy.loginfo(f"Saved ({self.latitude}, {self.longitude})")
+            self.visualize_cart(x, y)
+        else:
+            print("no converter")
+
+    def visualize_cart(self, x, y):
+        marker = Marker()
+        marker.header.frame_id = "odom"
+        marker.ns = "gps_cart_in_map"
+        marker.id = self.num_cart_pts
+        self.num_cart_pts += 1
+        marker.type = Marker.SPHERE
+        marker.action = Marker.ADD
+        marker.scale.x = 0.3
+        marker.scale.y = 0.3
+        marker.scale.z = 0.1
+        marker.color.a = 1.0
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        marker.lifetime = rospy.Duration(0)
+        marker.pose.position.x = x
+        marker.pose.position.y = y
+        marker.pose.position.z = 0
+        marker.pose.orientation = Quaternion(0, 0, 0, 1)
+        self.gps_xy_pub.publish(marker)  
 
     def publish_gps_path(self):
 
@@ -186,10 +261,10 @@ class Gps_Navigation:
             myPoint.y = data[1]
 
             myMarker.pose.position = myPoint
-            myMarker.color = ColorRGBA(0.0, 0, 1, 1)
+            myMarker.color = ColorRGBA(1.0, 1.0, 0.0, 1)
 
-            myMarker.scale.x = 0.1
-            myMarker.scale.y = 0.1
+            myMarker.scale.x = 0.3
+            myMarker.scale.y = 0.3
             myMarker.scale.z = 0.05
             path_list.append(myMarker)
         # print("odom_x", self.x, "odom_y", self.y)
@@ -225,7 +300,7 @@ class Gps_Navigation:
         self.heading_update()
 
     def read_gps_points(self):
-        file_path = self.package_path + "/media/gps_coordinates.txt"
+        file_path = self.package_path + "/gps_carts/ll.txt"
         if not os.path.exists(file_path):
             print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
             return
@@ -236,11 +311,9 @@ class Gps_Navigation:
             data = file.readlines()
             for line in data:
                 lat, lon = line.split(",")
-                self.latitude = float(lat)
-                self.longitude = float(lon)
 
                 self.gps_x, self.gps_y = self.conv.ll_to_cartesian(
-                    self.latitude, self.longitude
+                    float(lat), float(lon)
                 )
 
                 self.waypoints_gps.append((self.latitude, self.longitude))
@@ -269,7 +342,7 @@ class Gps_Navigation:
             myPoint.x = data[0]
             myPoint.y = data[1]
             myMarker.pose.position = myPoint
-            myMarker.color = ColorRGBA(0.8, 0, 0, 1)
+            myMarker.color = ColorRGBA(1.0, 0, 0, 1)
             myMarker.scale.x = 0.1
             myMarker.scale.y = 0.1
             myMarker.scale.z = 0.05
