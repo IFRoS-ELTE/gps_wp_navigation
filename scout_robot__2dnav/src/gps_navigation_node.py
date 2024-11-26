@@ -19,8 +19,6 @@ import threading
 class Gps_Navigation:
 
     def __init__(self):
-
-
         ##############
         self.prev_pose = None
         self.current_pose = None
@@ -79,13 +77,13 @@ class Gps_Navigation:
 
         # subscribers
         self.gps_data_sub = rospy.Subscriber("/gnss", NavSatFix, self.gps_callback)
-        self.odom_sub = rospy.Subscriber("/odometry/filtered", Odometry, self.odom_callback) #! change back to /odom
+        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.odom_callback)
         # rospy.Subscriber("/imu/data", Imu, imu_callback)
         self.gps_rate_timer = rospy.Timer(rospy.Duration(5), self.gps_rate_callback)
         self.start_nav = False
 
-        # self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
-        rospy.Timer(rospy.Duration(5), self.save_gps_xy)
+        self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation) #! uncomment this line to start navigation 
+        # rospy.Timer(rospy.Duration(5), self.save_gps_xy)
 
 
 
@@ -158,23 +156,23 @@ class Gps_Navigation:
             file_path = os.path.join(dir_path, "xy.txt")
             file_path1 = os.path.join(dir_path, "ll.txt")
             self.current_pose = (self.x, self.y)
-            # if self.prev_pose is None:
-            #     self.prev_pose = self.current_pose
-            #     ### save once
-            #     with open(file_path, "a") as file:
-            #         file.write(f"{x}, {y}\n")
-            #     with open(file_path1, "a") as file:
-            #         file.write(f"{self.latitude}, {self.longitude}\n")
-            #     return
-            # distance = math.sqrt((self.current_pose[0] - self.prev_pose[0]) ** 2 + (self.current_pose[1] - self.prev_pose[1]) ** 2)
-            # if distance < 0.5:
-            #     return
-        # else:
-            with open(file_path, "a") as file:
-                file.write(f"{x}, {y}\n")
-            with open(file_path1, "a") as file:
-                file.write(f"{self.latitude}, {self.longitude}\n")
-                # self.prev_pose = self.current_pose
+            if self.prev_pose is None:
+                self.prev_pose = self.current_pose
+                ### save once
+                with open(file_path, "a") as file:
+                    file.write(f"{x}, {y}\n")
+                with open(file_path1, "a") as file:
+                    file.write(f"{self.latitude}, {self.longitude}\n")
+                return
+            distance = math.sqrt((self.current_pose[0] - self.prev_pose[0]) ** 2 + (self.current_pose[1] - self.prev_pose[1]) ** 2)
+            if distance < 0.5:
+                return
+            else:
+                with open(file_path, "a") as file:
+                    file.write(f"{x}, {y}\n")
+                with open(file_path1, "a") as file:
+                    file.write(f"{self.latitude}, {self.longitude}\n")
+                    # self.prev_pose = self.current_pose
 
             rospy.loginfo(f"Saved ({x}, {y})")
             rospy.loginfo(f"Saved ({self.latitude}, {self.longitude})")
@@ -279,12 +277,12 @@ class Gps_Navigation:
 
     def save_gps_coordinates(self):
         # read the current package path
-        dir_path = os.path.join(self.package_path, "media")
+        dir_path = os.path.join(self.package_path, "wapoints")
         # Check if the directory exists, if not, create it
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         # Construct the file path
-        file_path = os.path.join(dir_path, "gps_coordinates.txt")
+        file_path = os.path.join(dir_path, "w_pts.txt")
         with open(file_path, "a") as file:
             file.write(f"{self.latitude}, {self.longitude}\n")
         rospy.loginfo(f"Saved GPS coordinates: {self.latitude}, {self.longitude}")
@@ -300,25 +298,54 @@ class Gps_Navigation:
         self.heading_update()
 
     def read_gps_points(self):
-        file_path = self.package_path + "/gps_carts/ll.txt"
-        if not os.path.exists(file_path):
-            print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
-            return
+        # file_path = self.package_path + "/gps_carts/ll.txt"
+        # if not os.path.exists(file_path):
+        #     print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
+        #     return
+        # self.waypoints_gps = []
+        # self.waypoints_cart = []
+        # conv = converter(47.4742696, 19.0582031)
+        # with open(file_path, "r") as file:
+        #     data = file.readlines()
+        #     for line in data:
+        #         lat, lon = line.split(",")
+
+        #         self.gps_x, self.gps_y = conv.ll_to_cartesian(
+        #             float(lat), float(lon)
+        #         )
+        #         self.waypoints_gps.append((self.latitude, self.longitude))
+        #         self.waypoints_cart.append((self.gps_x, self.gps_y))
+        # file_path_new = self.package_path + "/gps_carts/xy_new.txt"
+        # print("Way_points" , self.waypoints_cart)
+        # with open(file_path_new, "a") as file:
+        #     for point in self.waypoints_cart:
+        #         file.write(f"{point[0]}, {point[1]}\n")
+        # self.visualize_waypoints()
+
+        
+
+        file_path = self.package_path + "/gps_carts/xy.txt"
+        # if not os.path.exists(file_path):
+        #     print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
+        #     return
         self.waypoints_gps = []
         self.waypoints_cart = []
-
+        # conv = converter(47.4742696, 19.0582031)
         with open(file_path, "r") as file:
             data = file.readlines()
             for line in data:
-                lat, lon = line.split(",")
-
-                self.gps_x, self.gps_y = self.conv.ll_to_cartesian(
-                    float(lat), float(lon)
-                )
-
+                x, y = line.split(",")
+                # self.gps_x, self.gps_y = conv.ll_to_cartesian(
+                #     float(lat), float(lon)
+                # )
                 self.waypoints_gps.append((self.latitude, self.longitude))
-                self.waypoints_cart.append((self.gps_x, self.gps_y))
-
+                self.waypoints_cart.append((float(x), float(y)))
+                print("ss" , self.waypoints_cart)
+        # file_path_new = self.package_path + "/gps_carts/xy_new.txt"
+        # print("Way_points" , self.waypoints_cart)
+        # with open(file_path_new, "a") as file:
+        #     for point in self.waypoints_cart:
+        #         file.write(f"{point[0]}, {point[1]}\n")
         self.visualize_waypoints()
 
     # visualize waypoint
@@ -343,8 +370,8 @@ class Gps_Navigation:
             myPoint.y = data[1]
             myMarker.pose.position = myPoint
             myMarker.color = ColorRGBA(1.0, 0, 0, 1)
-            myMarker.scale.x = 0.1
-            myMarker.scale.y = 0.1
+            myMarker.scale.x = 0.5
+            myMarker.scale.y = 0.5
             myMarker.scale.z = 0.05
             path_list.append(myMarker)
         self.waypoint_viz.publish(path_list)

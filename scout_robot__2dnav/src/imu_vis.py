@@ -2,14 +2,15 @@
 import rospy
 from sensor_msgs.msg import Imu
 from visualization_msgs.msg import Marker
-from geometry_msgs.msg import Point,Quaternion,Vector3Stamped
+from geometry_msgs.msg import Point,Quaternion,Vector3Stamped, Twist
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from math import atan2, degrees
 import os
-
+import numpy as np
+import csv
 class IMUOrientationVisualizer:
     def __init__(self):
-        rospy.init_node("imu_orientation_visualizer", anonymous=True)
+        rospy.init_node("mag_calibration", anonymous=True)
 
         rospy.Subscriber('/imu/data', Imu, self.imu_callback)
         rospy.Subscriber('/imu/mag', Vector3Stamped, self.imu_mag_callback)
@@ -19,12 +20,41 @@ class IMUOrientationVisualizer:
 
         self.mag_heading = None
 
+        # mag declination
+        self.declination = None #! for now..change later
+
+        self.output_file = rospy.get_param("~output_file", "magnetometer_data.csv")
+        # Open file for writing
+        self.file = open(self.output_file, 'w', newline='')
+        self.csv_writer = csv.writer(self.file)
+
+        # Write header
+        self.csv_writer.writerow(['x', 'y', 'z'])
+
+        self.mag_points = np.empty((0, 3), float)
     def imu_mag_callback(self, msg):
+
+        ###? Personal observation: 
+        #* The angle computed usign atan2 from the mag vector assumes clockwise rotation is positive
+        #* However, the quaternion from the imu assumes counter-clockwise rotation is positive
         x = msg.vector.x
         y = msg.vector.y
         z = msg.vector.z
 
-        heading = atan2(y, x)
+        self.mag_points = np.vstack((self.mag_points, [x, y, z]))
+        self.csv_writer.writerow([x, y, z])
+        #######################!After calibration####################################
+        #* Matrix A for soft iron calibration
+        A = np.empty((3, 3), float)
+
+        #* vector b for soft iron calibration
+        b = np.empty((1, 3), float)
+
+        C = (np.array([x, y, z].reshape(-1, 1) - b)) @ A
+        x = C[0], y = C[1], z = C[2]
+        ###########################!###############################################
+        heading = atan2(y, x) #assuming heading is in x axis
+        heading_calib = -atan2(y, x) # to match the quaternion orientation
 
         #* Low-pass filter the heading
         if self.mag_heading is None:
@@ -32,8 +62,10 @@ class IMUOrientationVisualizer:
         else:
              self.mag_heading = 0.9 * self.mag_heading + 0.1 * heading
 
-        heading_degrees = degrees(self.mag_heading)
-        # rospy.loginfo(f"Magnetic Heading: {heading_degrees}")
+        heading_deg = degrees(self.mag_heading)  + self.declination
+        heading_deg_calib = degrees(heading_calib)  + self.declination
+        
+        print(f"lpass heading: {heading_deg:.2f}| calib heading: {heading_deg_calib:.2f}")
 
         marker = Marker()
         marker.header.frame_id = "base_link" #! to see it move with the robot
@@ -48,8 +80,8 @@ class IMUOrientationVisualizer:
         quaternion = quaternion_from_euler(0, 0, -self.mag_heading)
         marker.pose.orientation = Quaternion(*quaternion)
 
-        marker.scale.x = 2.1
-        marker.scale.y = 2.1
+        marker.scale.x = 0.1
+        marker.scale.y = 0.1
         marker.scale.z = 0.1
 
         marker.color.r = 0.0
@@ -72,7 +104,7 @@ class IMUOrientationVisualizer:
         print(f"Yaw_m: {yaw:.2f}({yaw*180/3.1415:.2f})")
         #create marker msg
         marker = Marker()
-        marker.header.frame_id = "base_link" #! to see it move with the robot
+        marker.header.frame_id = "odom" #! to see it move with the robot
         marker.header.stamp = rospy.Time.now()
         marker.ns = "imu_orientation"
         marker.id = 0
