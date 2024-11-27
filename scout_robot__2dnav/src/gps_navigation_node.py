@@ -86,12 +86,20 @@ class Gps_Navigation:
         # rospy.Timer(rospy.Duration(5), self.save_gps_xy)
 
 
-
+        # average initial pose
+        self.averaged_wp = []
+        
     def gps_callback(self, data):
 
         self.latitude = data.latitude
         self.longitude = data.longitude
         self.altitude = data.altitude
+
+        while(len(self.averaged_wp) < 30):
+            self.averaged_wp.append([self.latitude, self.longitude])
+
+        self.latitude, self.longitude = np.mean(np.array(self.averaged_wp), axis=0)
+        self.averaged_wp = []
 
         if self.initialize_frame:
             self.anchor_lat = self.latitude
@@ -165,7 +173,7 @@ class Gps_Navigation:
                     file.write(f"{self.latitude}, {self.longitude}\n")
                 return
             distance = math.sqrt((self.current_pose[0] - self.prev_pose[0]) ** 2 + (self.current_pose[1] - self.prev_pose[1]) ** 2)
-            if distance < 0.5:
+            if distance < 5:
                 return
             else:
                 with open(file_path, "a") as file:
@@ -298,54 +306,22 @@ class Gps_Navigation:
         self.heading_update()
 
     def read_gps_points(self):
-        # file_path = self.package_path + "/gps_carts/ll.txt"
-        # if not os.path.exists(file_path):
-        #     print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
-        #     return
-        # self.waypoints_gps = []
-        # self.waypoints_cart = []
-        # conv = converter(47.4742696, 19.0582031)
-        # with open(file_path, "r") as file:
-        #     data = file.readlines()
-        #     for line in data:
-        #         lat, lon = line.split(",")
-
-        #         self.gps_x, self.gps_y = conv.ll_to_cartesian(
-        #             float(lat), float(lon)
-        #         )
-        #         self.waypoints_gps.append((self.latitude, self.longitude))
-        #         self.waypoints_cart.append((self.gps_x, self.gps_y))
-        # file_path_new = self.package_path + "/gps_carts/xy_new.txt"
-        # print("Way_points" , self.waypoints_cart)
-        # with open(file_path_new, "a") as file:
-        #     for point in self.waypoints_cart:
-        #         file.write(f"{point[0]}, {point[1]}\n")
-        # self.visualize_waypoints()
-
-        
-
-        file_path = self.package_path + "/gps_carts/xy.txt"
-        # if not os.path.exists(file_path):
-        #     print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
-        #     return
+        file_path = self.package_path + "/gps_carts/ll.txt"
+        if not os.path.exists(file_path):
+            print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
+            return
         self.waypoints_gps = []
         self.waypoints_cart = []
-        # conv = converter(47.4742696, 19.0582031)
         with open(file_path, "r") as file:
             data = file.readlines()
             for line in data:
-                x, y = line.split(",")
-                # self.gps_x, self.gps_y = conv.ll_to_cartesian(
-                #     float(lat), float(lon)
-                # )
+                lat, lon = line.split(",")
+
+                gps_x, gps_y = self.conv.ll_to_cartesian(
+                    float(lat), float(lon)
+                )
                 self.waypoints_gps.append((self.latitude, self.longitude))
-                self.waypoints_cart.append((float(x), float(y)))
-                print("ss" , self.waypoints_cart)
-        # file_path_new = self.package_path + "/gps_carts/xy_new.txt"
-        # print("Way_points" , self.waypoints_cart)
-        # with open(file_path_new, "a") as file:
-        #     for point in self.waypoints_cart:
-        #         file.write(f"{point[0]}, {point[1]}\n")
+                self.waypoints_cart.append((gps_x, gps_y))
         self.visualize_waypoints()
 
     # visualize waypoint
@@ -402,6 +378,7 @@ class Gps_Navigation:
                 while not self.goal_reached:
 
                     distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
+                    print("Distance to Goal: ", distance)
                     if distance < self.dis_tolerance:
                         self.goal_reached = True
                         self.count += 1
