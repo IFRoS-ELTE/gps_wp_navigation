@@ -19,13 +19,16 @@ import threading
 class Gps_Navigation:
 
     def __init__(self):
-        ##############
+        ############## for saving gps points ###############
         self.prev_pose = None
         self.current_pose = None
         ##############
 
+        ######### odometry ########################
         self.x = 0
         self.y = 0
+        ##########################################
+
         # initialize variables
         self.initialize_frame = True
         self.num_cart_pts = 0
@@ -46,15 +49,11 @@ class Gps_Navigation:
         rospack = rospkg.RosPack()
         self.package_path = rospack.get_path("scout_robot__2dnav")
         # Replace 'your_package_name' with the actual package name
-
         # Start listening for keyboard events
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
         self.goal_reached = False
-
-
         self.conv = None
-
         # publishers
         # gps and odom path publishers
         self.gps_odom = rospy.Publisher("/gps_odom", Odometry, queue_size=10)
@@ -62,8 +61,9 @@ class Gps_Navigation:
         self.gps_xy_pub = rospy.Publisher("/gps_xy", Marker, queue_size=10)
 
         self.gps_odom_filtered = rospy.Publisher(
-            "/gps_odom/filtered", Odometry, queue_size=10#! not used
+            "/gps_odom/filtered", Odometry, queue_size=10  #! not used
         )
+
         self.gps_path_pub = rospy.Publisher("/gps_path", MarkerArray, queue_size=10)
         self.odom_path_pub = rospy.Publisher("/odom_path", MarkerArray, queue_size=10)
         self.waypoint_viz = rospy.Publisher("/waypoint_viz", MarkerArray, queue_size=10)
@@ -82,20 +82,21 @@ class Gps_Navigation:
         self.gps_rate_timer = rospy.Timer(rospy.Duration(5), self.gps_rate_callback)
         self.start_nav = False
 
-        self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation) #! uncomment this line to start navigation 
+        self.navigate = rospy.Timer(
+            rospy.Duration(1), self.waypoint_navigation
+        )  #! uncomment this line to start navigation
         # rospy.Timer(rospy.Duration(5), self.save_gps_xy)
-
 
         # average initial pose
         self.averaged_wp = []
-        
+
     def gps_callback(self, data):
 
         self.latitude = data.latitude
         self.longitude = data.longitude
         self.altitude = data.altitude
 
-        while(len(self.averaged_wp) < 30):
+        while len(self.averaged_wp) < 30:
             self.averaged_wp.append([self.latitude, self.longitude])
 
         self.latitude, self.longitude = np.mean(np.array(self.averaged_wp), axis=0)
@@ -154,9 +155,9 @@ class Gps_Navigation:
 
     def save_gps_xy(self, event):
         if self.conv is not None:
-            x, y= self.conv.ll_to_cartesian(self.latitude, self.longitude)
+            x, y = self.conv.ll_to_cartesian(self.latitude, self.longitude)
 
-            #save to a file
+            # save to a file
             dir_path = os.path.join(self.package_path, "gps_carts")
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
@@ -172,15 +173,19 @@ class Gps_Navigation:
                 with open(file_path1, "a") as file:
                     file.write(f"{self.latitude}, {self.longitude}\n")
                 return
-            distance = math.sqrt((self.current_pose[0] - self.prev_pose[0]) ** 2 + (self.current_pose[1] - self.prev_pose[1]) ** 2)
+            distance = math.sqrt(
+                (self.current_pose[0] - self.prev_pose[0]) ** 2
+                + (self.current_pose[1] - self.prev_pose[1]) ** 2
+            )
             if distance < 5:
+                self.visualize_cart(x, y)
                 return
             else:
                 with open(file_path, "a") as file:
                     file.write(f"{x}, {y}\n")
                 with open(file_path1, "a") as file:
                     file.write(f"{self.latitude}, {self.longitude}\n")
-                    # self.prev_pose = self.current_pose
+                    self.prev_pose = self.current_pose
 
             rospy.loginfo(f"Saved ({x}, {y})")
             rospy.loginfo(f"Saved ({self.latitude}, {self.longitude})")
@@ -208,7 +213,7 @@ class Gps_Navigation:
         marker.pose.position.y = y
         marker.pose.position.z = 0
         marker.pose.orientation = Quaternion(0, 0, 0, 1)
-        self.gps_xy_pub.publish(marker)  
+        self.gps_xy_pub.publish(marker)
 
     def publish_gps_path(self):
 
@@ -317,12 +322,12 @@ class Gps_Navigation:
             for line in data:
                 lat, lon = line.split(",")
 
-                gps_x, gps_y = self.conv.ll_to_cartesian(
-                    float(lat), float(lon)
-                )
+                gps_x, gps_y = self.conv.ll_to_cartesian(float(lat), float(lon))
                 self.waypoints_gps.append((self.latitude, self.longitude))
                 self.waypoints_cart.append((gps_x, gps_y))
+      
         self.visualize_waypoints()
+        print("waypoints", self.waypoints_cart)
 
     # visualize waypoint
     def visualize_waypoints(self):

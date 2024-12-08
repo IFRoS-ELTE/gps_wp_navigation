@@ -1,0 +1,5 @@
+<node pkg="pcl_ros" type="voxel_grid_filter" name="voxel_grid_filter">
+  <param name="leaf_size" value="0.1" />
+  <remap from="input" to="/velodyne_points" />
+  <remap from="output" to="/filtered_points" />
+</node>

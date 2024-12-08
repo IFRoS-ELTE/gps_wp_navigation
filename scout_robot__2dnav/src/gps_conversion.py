@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import utm
+
 # from shapely.geometry import Point, Polygon
 
 
@@ -18,6 +19,16 @@ class LatLonToCartesianConverter(object):
         print(self.anchor_easting, self.anchor_northing, self.zone, self.zone_letter)
 
     def ll_to_cartesian(self, lat, lon):
+        """
+        converts latitude, longitude data to cartesian
+
+        Parameters:
+            latitude (float):
+            longitude (float):
+
+        Returns:
+            x, y
+        """
         easting, northing = utm.from_latlon(
             lat, lon, force_zone_number=self.zone, force_zone_letter=self.zone_letter
         )[0:2]

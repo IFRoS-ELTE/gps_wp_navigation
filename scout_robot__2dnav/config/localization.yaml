@@ -9,17 +9,18 @@ predict_to_current_time: true
 frequency: 30
 
 odom0: odom
-odom0_config: [true,  true,  false,
-              false, false, true,
-              true,  true, true,
-              false, false, true,
-              false, false, false]
+odom0_config: 
+              # [true,  true,  false,
+              # false, false, true,
+              # true,  true, true,
+              # false, false, true,
+              # false, false, false]
 
-            # [false, false, false,
-            #    false, false, false,
-            #    true, true, true,
-            #    false, false, true,
-            #    false, false, false]
+              [false, false, false,
+               false, false, false,
+               true, true, true,
+               false, false, true,
+               false, false, false]
 
 
 odom0_differential: true
@@ -35,3 +36,4 @@ imu0_config: [false, false, false,
 imu0_differential: true
 imu0_queue_size: 10
 imu0_remove_gravitational_acceleration: true
+

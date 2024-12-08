@@ -1,0 +1,18 @@
+<launch>
+  <node pkg="scout_robot__2dnav"  type="laser_scan_to_point_cloud_node" name="laser_scan_to_point_cloud_node"></node >
+  <!-- Launch the octomap_server node -->
+  <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" output="screen">
+    <!-- Set parameters for the octomap_server -->
+    <param name="resolution" value="0.05"/>
+    <param name="frame_id" value="odom"/>
+    <param name="sensor_model/max_range" value="5.0"/>
+    <param name="sensor_model/hit" value="0.7"/>
+    <param name="sensor_model/miss" value="0.4"/>
+    <param name="sensor_model/min" value="0.12"/>
+    <param name="sensor_model/max" value="0.97"/>
+    <!-- Remap the input topic to the filtered point cloud topic -->
+    <!-- <remap from="/cloud_in" to="/scan/front"/> -->
+  </node>
+  <node pkg="scout_robot__2dnav" type="scout_planning_node" name="scout_planning_node" >
+  </node >
+</launch>

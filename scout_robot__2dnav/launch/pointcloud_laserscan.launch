@@ -1,0 +1,24 @@
+
+<launch>
+    <node pkg="pcl_ros" type="voxel_grid_filter" name="voxel_grid_filter">
+        <param name="leaf_size" value="0.1" />
+        <remap from="input" to="/velodyne_points" />
+        <remap from="output" to="/filtered_points" />
+    </node>
+  <!-- Launch the pointcloud_to_laserscan node -->
+<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+    <param name="min_height" value="0.1"/>
+    <param name="max_height" value="1.0"/>
+    <param name="angle_min" value="-1.5708"/>
+    <param name="angle_max" value="1.5708"/>
+    <param name="angle_increment" value="0.01"/>
+    <param name="scan_time" value="0.1"/>
+    <param name="range_min" value="0.5"/>
+    <param name="range_max" value="10.0"/>
+    <param name="use_inf" value="true"/>
+    <param name="inf_epsilon" value="1.0"/>
+    <remap from="cloud_in" to="/velodyne/points"/>
+    <!-- <remap from="cloud_in" to="/filtered_points"/> -->
+    <remap from="scan" to="/scan/front"/>
+  </node>
+</launch>
