@@ -19,8 +19,28 @@ The transformation is done using the utm , which is a  method to convert geograp
       </div>
     </div>
 
-### Task3: Calibration  Issue 
-  - detail explanation , figure , how we calibrate the robot 
+### Task3: Calibration of Magnetometer sensor
+For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame. According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point towrads the north.  
+
+The reading from the Magnetometer sensor can be used to calibrate the robot's orientation. The magnetometer sensor provides the magnetic field vector in the robot's local coordinate frame. However, the magnetometer itself is distorted by magnetic field from the sensor circuit board, and the surounding environment.The two most common distortion are hard iron and soft iron distortion as shown in the following figure.
+<p>
+  <img src="./soft-and-hard.png" height="300" width="auto"/> &nbsp;&nbsp;
+</p><br>
+
+To correct these distortions, the magnetometer sensor readings can be calibrated using the following steps:
+1. **Collect Data**: Collect data from the magnetometer sensor while rotating the robot in all possible directions. Figure-eight motion is a common method to collect data from the magnetometer sensor.
+2. **Compute calibration coefficients**: Use the collected data to compute the calibration coefficients. The calibration coefficients are used to correct the distortions in the magnetometer sensor readings. Different tools such as [magcal](https://www.mathworks.com/help/nav/ref/magcal.html) can be used to compute the calibration coefficients.
+
+The equation is:
+
+$$ 
+C = (D - b) \cdot A
+$$
+where `C` is the calibrated magnetometer sensor readings, `D` is the raw magnetometer sensor readings, `A` is the soft iron calibration matrix, and `b` is the hard iron calibration vector.
+
+ 2.1. **Soft Iron Calibration**: The soft iron calibration corrects the ellipsoidal distortion in the magnetometer sensor readings. The calibration coefficients are used to scale the magnetometer sensor readings along each axis. These coefficients are represented as a matrix(`A` in the above equation) and multiplied with the magnetometer readings.
+
+ 2.2. **Hard Iron Calibration**: The hard iron calibration corrects the offset in the magnetometer sensor readings. The calibration coefficients are used to shift the magnetometer sensor readings along each axis. This coefficents are represented as vector(`b` in the above equation) and added to the magnetometer readings.  
 
 ## Part 2: Efficient Waypoint Traversing Path Planning 
 ### Method 1 - Nearest Neighbor Algorithm with Dubins Path Constraints
