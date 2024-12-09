@@ -90,6 +90,8 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
   </tr>
 </table>
 
+**Note:** <font color='lime'>These calibration coefficients can be used for the respective robots in future experiments. However, we recommend recalibrating the magnetometers in both robots with more data to improve the accuracy of the calibration coefficients. 
+</font> <br>
 ## Part 2: Efficient Waypoint Traversing Path Planning 
 ### Method 1 - Nearest Neighbor Algorithm with Dubins Path Constraints
 To implement the nearest neighbor algorithm, we begin at robot position. From there, we find the closest unvisited waypoint and add it to the sequence. Then, we move to the next node and repeat the process of finding the nearest unvisited node until all nodes are included in the tour.To find the neareast unvisited node we use The `KDTree` class from `scipy.spatial` to find the k nearest neighbors of the current waypoint instead of searching the whole waypoint.
