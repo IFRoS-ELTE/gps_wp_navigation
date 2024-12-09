@@ -1,0 +1,12 @@
+{"type":"FeatureCollection","name":"Layer1",
+"features":[{"type":"Feature","properties":{"REMARKS":""},
+"geometry":{"type":"Point","coordinates":[ 8.899826045214466 , 49.900112856279215,731.404]}},
+{"type":"Feature","properties":{"REMARKS":""},
+"geometry":{"type":"Point","coordinates":[ 8.89959504242316549 , 90013675344472,731.211]}},
+{"type":"Feature","properties":{"REMARKS":""},
+"geometry":{"type":"Point","coordinates":[8.89953166848994, 49.900042888540845, 730.408]}},
+{"type":"Feature","properties":{"REMARKS":""},
+"geometry":{"type":"Point","coordinates":[8.899644440803884 ,49.89994848528675 ,731.259]}},
+{"type":"Feature","properties":{"REMARKS":""},
+"geometry":{"type":"Point","coordinates":[8.899850091964053 ,49.89996906810635, 731.259]}}]
+}

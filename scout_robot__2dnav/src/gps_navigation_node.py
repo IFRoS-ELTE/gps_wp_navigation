@@ -17,19 +17,15 @@ import threading
 
 
 class Gps_Navigation:
-
     def __init__(self):
+        # initialize variables
         ############## for saving gps points ###############
         self.prev_pose = None
         self.current_pose = None
-        ##############
-
         ######### odometry ########################
         self.x = 0
         self.y = 0
         ##########################################
-
-        # initialize variables
         self.initialize_frame = True
         self.num_cart_pts = 0
         # Initilaize the state of the robot
@@ -41,14 +37,26 @@ class Gps_Navigation:
         self.waypoints_gps = []
         self.dis_tolerance = 0.5
         self.count = 0  # waypoint counter
+        self.word_frame = "odom"
         # uncertainty of gps measurements in meters
-        self.Rs = np.diag([0.00001, 0.00001])
+        self.Rs = np.diag([12, 12])
         self.xk = np.array([0, 0, 0]).reshape(3, 1)
         self.P = np.eye(3) * 0.1
         # Get the current package path
         rospack = rospkg.RosPack()
-        self.package_path = rospack.get_path("scout_robot__2dnav")
-        # Replace 'your_package_name' with the actual package name
+        self.package_path = rospack.get_path(
+            "scout_robot__2dnav"
+        )  # Replace 'your_package_name' with the actual package name
+
+        # ros parameters
+        self.gnss_topic = rospy.get_param("gnss_topic", "/gnss")
+
+        self.odom_topic = rospy.get_param("odom_topic", "/odom")
+        self.imu_topic = rospy.get_param("imu_topic", "/imu/data")
+        self.mode = rospy.get_param(
+            "~mode", 1
+        )  # 1 for navigation , 2 collect gps points
+
         # Start listening for keyboard events
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
@@ -57,13 +65,10 @@ class Gps_Navigation:
         # publishers
         # gps and odom path publishers
         self.gps_odom = rospy.Publisher("/gps_odom", Odometry, queue_size=10)
-
         self.gps_xy_pub = rospy.Publisher("/gps_xy", Marker, queue_size=10)
-
         self.gps_odom_filtered = rospy.Publisher(
-            "/gps_odom/filtered", Odometry, queue_size=10  #! not used
+            "/gps_odom/filtered", Odometry, queue_size=10
         )
-
         self.gps_path_pub = rospy.Publisher("/gps_path", MarkerArray, queue_size=10)
         self.odom_path_pub = rospy.Publisher("/odom_path", MarkerArray, queue_size=10)
         self.waypoint_viz = rospy.Publisher("/waypoint_viz", MarkerArray, queue_size=10)
@@ -76,26 +81,27 @@ class Gps_Navigation:
         )
 
         # subscribers
-        self.gps_data_sub = rospy.Subscriber("/gnss", NavSatFix, self.gps_callback)
-        self.odom_sub = rospy.Subscriber("/odom", Odometry, self.odom_callback)
-        # rospy.Subscriber("/imu/data", Imu, imu_callback)
-        self.gps_rate_timer = rospy.Timer(rospy.Duration(5), self.gps_rate_callback)
+        self.gps_data_sub = rospy.Subscriber(
+            self.gnss_topic, NavSatFix, self.gps_callback
+        )
+        self.odom_sub = rospy.Subscriber(self.odom_topic, Odometry, self.odom_callback)
+        # rospy.Subscriber(self.imu_topic, Imu, imu_callback)
+        self.gps_rate_timer = rospy.Timer(rospy.Duration(0.5), self.gps_rate_callback)
         self.start_nav = False
-
-        self.navigate = rospy.Timer(
-            rospy.Duration(1), self.waypoint_navigation
-        )  #! uncomment this line to start navigation
-        # rospy.Timer(rospy.Duration(5), self.save_gps_xy)
-
-        # average initial pose
+        if self.mode == 1:
+            self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
+        elif self.mode == 2:
+            self.save_gps = rospy.Timer(rospy.Duration(5), self.save_gps_xy)
+        # avarage the gps data collector
         self.averaged_wp = []
 
     def gps_callback(self, data):
+        "receives gps point and publish points converted to cartesian with respect odom frame"
 
         self.latitude = data.latitude
         self.longitude = data.longitude
         self.altitude = data.altitude
-
+        # collect multiple gps point and average them
         while len(self.averaged_wp) < 30:
             self.averaged_wp.append([self.latitude, self.longitude])
 
@@ -106,7 +112,6 @@ class Gps_Navigation:
             self.anchor_lat = self.latitude
             self.anchor_lon = self.longitude
             self.initialize_frame = False
-
             self.conv = converter(self.anchor_lat, self.anchor_lon)
             self.start_nav = True
 
@@ -116,15 +121,15 @@ class Gps_Navigation:
 
         gps_odom = Odometry()
         gps_odom.header.stamp = rospy.Time.now()
-        gps_odom.header.frame_id = "odom"
+        gps_odom.header.frame_id = self.word_frame
         gps_odom.pose.pose.position.x = self.gps_x
         gps_odom.pose.pose.position.y = self.gps_y
         gps_odom.pose.pose.position.z = 0
         self.update_filter()
-
         self.gps_odom.publish(gps_odom)
 
     def odom_callback(self, data):
+        "odom topic subscribe and gets the pose and covariance  of the robot"
         self.x = data.pose.pose.position.x
         self.y = data.pose.pose.position.y
         self.z = data.pose.pose.position.z
@@ -147,16 +152,18 @@ class Gps_Navigation:
         ).reshape(3, 3)
 
     def gps_rate_callback(self, event):
-        self.gps_path.append((self.gps_x, self.gps_y))
-        # self.publish_gps_path()
+        "rate callback to save gps in cartesian and current pose"
+        if self.conv is not None:
 
-        self.odom_path.append((self.x, self.y))
-        self.publish_odom_path()
+            self.gps_path.append((self.gps_x, self.gps_y))
+            self.publish_gps_path()
+            self.odom_path.append((self.x, self.y))
+            self.publish_odom_path()
 
     def save_gps_xy(self, event):
+        "rate callback to save current pose of robot from gps topic in lat and longitude"
         if self.conv is not None:
             x, y = self.conv.ll_to_cartesian(self.latitude, self.longitude)
-
             # save to a file
             dir_path = os.path.join(self.package_path, "gps_carts")
             if not os.path.exists(dir_path):
@@ -194,8 +201,9 @@ class Gps_Navigation:
             print("no converter")
 
     def visualize_cart(self, x, y):
+        "visualize given x,y points"
         marker = Marker()
-        marker.header.frame_id = "odom"
+        marker.header.frame_id = self.word_frame
         marker.ns = "gps_cart_in_map"
         marker.id = self.num_cart_pts
         self.num_cart_pts += 1
@@ -216,7 +224,7 @@ class Gps_Navigation:
         self.gps_xy_pub.publish(marker)
 
     def publish_gps_path(self):
-
+        "publish gps x ,y path"
         marker_line = MarkerArray()
         marker_line.markers = []
 
@@ -225,7 +233,7 @@ class Gps_Navigation:
 
         for i, data in enumerate(self.gps_path):
             myMarker = Marker()
-            myMarker.header.frame_id = "odom"
+            myMarker.header.frame_id = self.word_frame
             myMarker.header.stamp = rospy.Time.now()
             myMarker.type = myMarker.SPHERE
             myMarker.action = myMarker.ADD
@@ -248,7 +256,7 @@ class Gps_Navigation:
         self.gps_path_pub.publish(path_list)
 
     def publish_odom_path(self):
-
+        "publish odom x,y path"
         marker_line = MarkerArray()
         marker_line.markers = []
 
@@ -256,7 +264,7 @@ class Gps_Navigation:
 
         for i, data in enumerate(self.odom_path):
             myMarker = Marker()
-            myMarker.header.frame_id = "odom"
+            myMarker.header.frame_id = self.word_frame
             myMarker.header.stamp = rospy.Time.now()
             myMarker.type = myMarker.SPHERE
             myMarker.action = myMarker.ADD
@@ -274,8 +282,8 @@ class Gps_Navigation:
             myMarker.pose.position = myPoint
             myMarker.color = ColorRGBA(1.0, 1.0, 0.0, 1)
 
-            myMarker.scale.x = 0.3
-            myMarker.scale.y = 0.3
+            myMarker.scale.x = 0.1
+            myMarker.scale.y = 0.1
             myMarker.scale.z = 0.05
             path_list.append(myMarker)
         # print("odom_x", self.x, "odom_y", self.y)
@@ -290,12 +298,12 @@ class Gps_Navigation:
 
     def save_gps_coordinates(self):
         # read the current package path
-        dir_path = os.path.join(self.package_path, "wapoints")
+        dir_path = os.path.join(self.package_path, "gps_carts")
         # Check if the directory exists, if not, create it
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         # Construct the file path
-        file_path = os.path.join(dir_path, "w_pts.txt")
+        file_path = os.path.join(dir_path, "waypoints.txt")
         with open(file_path, "a") as file:
             file.write(f"{self.latitude}, {self.longitude}\n")
         rospy.loginfo(f"Saved GPS coordinates: {self.latitude}, {self.longitude}")
@@ -311,6 +319,7 @@ class Gps_Navigation:
         self.heading_update()
 
     def read_gps_points(self):
+        "read gps waypoints in lat and long then convert to x ,y coordinate"
         file_path = self.package_path + "/gps_carts/ll.txt"
         if not os.path.exists(file_path):
             print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
@@ -325,19 +334,20 @@ class Gps_Navigation:
                 gps_x, gps_y = self.conv.ll_to_cartesian(float(lat), float(lon))
                 self.waypoints_gps.append((self.latitude, self.longitude))
                 self.waypoints_cart.append((gps_x, gps_y))
-      
+
         self.visualize_waypoints()
         print("waypoints", self.waypoints_cart)
 
     # visualize waypoint
     def visualize_waypoints(self):
+        "visualize waypoints converted to x ,y"
         marker_line = MarkerArray()
         marker_line.markers = []
         path_list = []
         myMarker = Marker()
         for i, data in enumerate(self.waypoints_cart):
             myMarker = Marker()
-            myMarker.header.frame_id = "odom"
+            myMarker.header.frame_id = self.word_frame
             myMarker.header.stamp = rospy.Time.now()
             myMarker.type = myMarker.SPHERE
             myMarker.action = myMarker.ADD
@@ -359,6 +369,9 @@ class Gps_Navigation:
 
     # navigate to the next waypoint
     def waypoint_navigation(self, event):
+        """'
+        navigate to the next waypoint
+        """
         if self.waypoints_cart == [] and self.start_nav:
             self.read_gps_points()
 
@@ -370,7 +383,7 @@ class Gps_Navigation:
                 goal = PoseStamped()
                 x, y = waypoint
                 self.goal_reached = False
-                goal.header.frame_id = "odom"
+                goal.header.frame_id = self.word_frame
                 goal.header.stamp = rospy.Time.now()
                 goal.pose.position.x = x
                 goal.pose.position.y = y
@@ -383,12 +396,12 @@ class Gps_Navigation:
                 while not self.goal_reached:
 
                     distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
-                    print("Distance to Goal: ", distance)
                     if distance < self.dis_tolerance:
                         self.goal_reached = True
                         self.count += 1
 
     def heading_update(self):
+        "kalman filter update"
         # Create a row vector of zeros of size 1 x 3*num_poses
         self.compass_Vk = np.diag([1])
         # define the covariance matrix of the compass
@@ -425,7 +438,7 @@ class Gps_Navigation:
         # Publish the filtered GPS data
         gps_odom_filtered = Odometry()
         gps_odom_filtered.header.stamp = rospy.Time.now()
-        gps_odom_filtered.header.frame_id = "odom"
+        gps_odom_filtered.header.frame_id = self.word_frame
         gps_odom_filtered.pose.pose.position.x = self.xk[0]
         gps_odom_filtered.pose.pose.position.y = self.xk[1]
         gps_odom_filtered.pose.pose.position.z = 0
@@ -447,7 +460,7 @@ class Gps_Navigation:
         self.gps_odom_filtered.publish(gps_odom_filtered)
 
         marker = Marker()
-        marker.header.frame_id = "odom"
+        marker.header.frame_id = self.word_frame
         marker.ns = "gps_in_map"
         marker.id = np.random.randint(1000)
         marker.type = Marker.SPHERE
