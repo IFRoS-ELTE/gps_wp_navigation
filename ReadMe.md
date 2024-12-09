@@ -40,8 +40,31 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
 
  2.1. **Soft Iron Calibration**: The soft iron calibration corrects the ellipsoidal distortion in the magnetometer sensor readings. The calibration coefficients are used to scale the magnetometer sensor readings along each axis. These coefficients are represented as a matrix(`A` in the above equation) and multiplied with the magnetometer readings.
 
- 2.2. **Hard Iron Calibration**: The hard iron calibration corrects the offset in the magnetometer sensor readings. The calibration coefficients are used to shift the magnetometer sensor readings along each axis. This coefficents are represented as vector(`b` in the above equation) and added to the magnetometer readings.  
+ 2.2. **Hard Iron Calibration**: The hard iron calibration corrects the offset in the magnetometer sensor readings. The calibration coefficients are used to shift the magnetometer sensor readings along each axis. This coefficents are represented as vector(`b` in the above equation) and added to the magnetometer readings. 
 
+ #### Calibration results for both Pomona and Silvanus
+  <p>
+  <img src="./pomona.gif" height="500" width="auto"/> &nbsp;&nbsp;
+  <img src="./silvanus.gif" height="500" width="auto"/> &nbsp;&nbsp;
+</p><br>
+
+<table>
+<th>
+  <td>Robot</td>
+  <td>A</td>
+  <td>b</td>
+</th>
+<tr>
+<td>Pomona</td>
+<td>matrix</td>
+<td>vector</td>
+</tr>
+<tr>
+<td>Silvanus</td>
+<td>matrix</td>
+<td>vector</td>
+</tr>
+</table>
 ## Part 2: Efficient Waypoint Traversing Path Planning 
 ### Method 1 - Nearest Neighbor Algorithm with Dubins Path Constraints
 To implement the nearest neighbor algorithm, we begin at robot position. From there, we find the closest unvisited waypoint and add it to the sequence. Then, we move to the next node and repeat the process of finding the nearest unvisited node until all nodes are included in the tour.To find the neareast unvisited node we use The `KDTree` class from `scipy.spatial` to find the k nearest neighbors of the current waypoint instead of searching the whole waypoint.
