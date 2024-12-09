@@ -48,23 +48,48 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
   <img src="./silvanus.gif" height="500" width="auto"/> &nbsp;&nbsp;
 </p><br>
 
-<table>
-<th>
-  <td>Robot</td>
-  <td>A</td>
-  <td>b</td>
-</th>
-<tr>
-<td>Pomona</td>
-<td>matrix</td>
-<td>vector</td>
-</tr>
-<tr>
-<td>Silvanus</td>
-<td>matrix</td>
-<td>vector</td>
-</tr>
+<table border="1">
+  <tr>
+    <th>Robot</th>
+    <th align="center">A</th>
+    <th align="center">b</th>
+  </tr>
+  <tr>
+    <td>Pomona</td>
+    <td>
+      <pre>
+      | 1  0  0 |
+      | 0  1  0 |
+      | 0  0  1 |
+      </pre>
+    </td>
+    <td>
+      <pre>
+      | -0.1908 |      
+      | -0.0518 |
+      | -0.5559 |
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>Silvanus</td>
+    <td>
+    <pre>
+      | 0.8965  0.0139  0.1370 |
+      | 0.0139  1.5075  0.3872 |
+      | 0.1370  0.3872  0.8593 |
+      </pre>
+    </td>
+    <td>
+      <pre>
+      | 0.0243  |       
+      | -0.3730 |
+      | -1.1995 |
+      </pre>
+    </td>
+  </tr>
 </table>
+
 ## Part 2: Efficient Waypoint Traversing Path Planning 
 ### Method 1 - Nearest Neighbor Algorithm with Dubins Path Constraints
 To implement the nearest neighbor algorithm, we begin at robot position. From there, we find the closest unvisited waypoint and add it to the sequence. Then, we move to the next node and repeat the process of finding the nearest unvisited node until all nodes are included in the tour.To find the neareast unvisited node we use The `KDTree` class from `scipy.spatial` to find the k nearest neighbors of the current waypoint instead of searching the whole waypoint.
@@ -97,7 +122,7 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
    
    #### Method1 : Custome Planner
 
-   1. **RRT_Pllaner** : This takes the start and the next waypoint and gives us a efficient  path between the two waypoints considering the obstacle(uses the `StateValidityChecker` to check for state of position and path). 
+   1. **RRT_Planner** : This takes the start and the next waypoint and gives us a efficient  path between the two waypoints considering the obstacle(uses the `StateValidityChecker` to check for state of position and path). 
    2. **State_Validity_Checker**: This class, `StateValidityChecker`, is responsible for checking the validity of individual positions and paths (sequences of positions) with respect to obstacel list.
    3. **Move Controller**:
 
