@@ -202,8 +202,8 @@ rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigat
 
 <table border="1">
   <tr>
-    <th>Taks</th>
-    <th align="center">Task</th>
+    <th style="width:30%">Taks</th>
+    <th align="center">Description</th>
   </tr>
   <tr>
     <td>Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift</td>
