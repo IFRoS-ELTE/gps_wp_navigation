@@ -131,3 +131,27 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
    #### Method2:  MoveBase ros package Planner 
    1. A* star 
    2. DWA
+
+
+### How to start navigation
+- Use the following commands to start the navigation:
+```bash
+sudo ssh agilex@192.168.1.102                                # ssh into pomona robot
+source ~/zedeli_ws/devel/setup.bash                          # source the workspace
+
+sudo ip link set can0 up type can bitrate 500000             # Start the can0 interface
+roslaunch scout_bringup scout_minimal.launch                 # Start the minimal launch file
+
+# In a new terminal
+source ~/zedeli_ws/devel/setup.bash                          # source the workspace
+roslaunch scout_bringup sensors.launch                       # Spawns lidar, gnss
+
+# In a new terminal run
+source ~/zedeli_ws/devel/setup.bash                          # source the workspace
+rosrun scout_robot__2dnav imu_vis.py                         # To face robot to the east, stop node once robot faces east
+
+# In a new terminal run
+source ~/zedeli_ws/devel/setup.bash                          # source the workspace
+rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigation node
+```
+**Note:** Before running the above commands, make sure to save GPS waypoints in `src/scout_robot_project/scout_robot__2dnav/waypoints/lat_lon.txt` file.
