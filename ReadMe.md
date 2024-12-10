@@ -175,6 +175,24 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
    2. DWA
 
 
+## Future Work
+
+<table border="1">
+  <tr>
+    <th width=100 >Taks</th>
+    <th width=100 align="center">Description</th>
+  </tr>
+  <tr>
+    <td>   Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift   </td>
+    <td>
+      <pre>
+    Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
+      </pre>
+    </td>
+  </tr>
+  </tr>
+</table>
+
 ### How to start navigation
 - Use the following commands to start the navigation:
 ```bash
@@ -197,24 +215,6 @@ source ~/zedeli_ws/devel/setup.bash                          # source the worksp
 rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigation node
 ```
 **Note:** Before running the above commands, make sure to save GPS waypoints in `src/scout_robot_project/scout_robot__2dnav/waypoints/lat_lon.txt` file.
-
-## TODO
-
-<table border="1">
-  <tr>
-    <th style="width:30%">Taks</th>
-    <th align="center">Description</th>
-  </tr>
-  <tr>
-    <td>Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift</td>
-    <td>
-      <pre>
-    Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
-      </pre>
-    </td>
-  </tr>
-  </tr>
-</table>
 
 ## Simulation
   <p>
