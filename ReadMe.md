@@ -54,6 +54,7 @@ The equation is:
 $$ 
 C = (D - b) \cdot A
 $$
+
 ![Equation](https://latex.codecogs.com/svg.latex?C%20%3D%20(D%20-%20b)%20%5Ccdot%20A)
 
 where `C` is the calibrated magnetometer sensor readings, `D` is the raw magnetometer sensor readings, `A` is the soft iron calibration matrix, and `b` is the hard iron calibration vector.
