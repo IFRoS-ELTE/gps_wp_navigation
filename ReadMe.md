@@ -39,9 +39,9 @@ This repository contains the implementation of GPS waypoint navigation in an out
 </table>
 
 ### Task1: Calibration of Magnetometer sensor
-For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame ([IMU should read 0 for yaw when facing east](https://docs.ros.org/en/melodic/api/robot_localization/html/navsat_transform_node.html)). According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point towrads the north.  
+For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame ([IMU should read 0 for yaw when facing east](https://docs.ros.org/en/melodic/api/robot_localization/html/navsat_transform_node.html)). According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point toward the north.  
 
-The reading from the Magnetometer sensor can be used to calibrate the robot's orientation. The magnetometer sensor provides the magnetic field vector in the robot's local coordinate frame. However, the magnetometer itself is distorted by magnetic field from the sensor circuit board, and the surounding environment.The two most common distortion are hard iron and soft iron distortion as shown in the following figure.
+The reading from the Magnetometer sensor can be used to calibrate the robot's orientation. The magnetometer sensor provides the magnetic field vector in the robot's local coordinate frame. However, the magnetometer itself is distorted by magnetic field from the sensor circuit board and the surrounding environment. The two most common distortions are hard iron and soft iron distortion as shown in the following figure.
 <p>
   <img src="./media/soft-and-hard.png" height="300" width="auto"/> &nbsp;&nbsp;
 </p><br>
