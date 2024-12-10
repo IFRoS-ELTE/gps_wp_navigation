@@ -55,7 +55,10 @@ The equation is:
 $$ 
 C = (D - b) \cdot A
 $$
-<br>
+<be>
+![Equation](https://latex.codecogs.com/svg.latex?C%20%3D%20(D%20-%20b)%20%5Ccdot%20A)
+
+
 where `C` is the calibrated magnetometer sensor readings, `D` is the raw magnetometer sensor readings, `A` is the soft iron calibration matrix, and `b` is the hard iron calibration vector.
 
  2.1. **Soft Iron Calibration**: The soft iron calibration corrects the ellipsoidal distortion in the magnetometer sensor readings. The calibration coefficients are used to scale the magnetometer sensor readings along each axis. These coefficients are represented as a matrix(`A` in the above equation) and multiplied with the magnetometer readings.
