@@ -1,30 +1,13 @@
 # GPS Waypoint Navigation
 
-
 ## Part 1 : 
-### Task 1: Reading waypoints from geojson file.
 
-
-### Task 2: Transform to robot coordinate
-- Detail description about conversion here( what is utm conversion , axis representation )
-- In this task we implement function to  transforms geographic coordinates (latitude and longitude) of waypoints into a robot's local Cartesian coordinate frame (X, Y coordinates).
-The transformation is done using the utm , which is a  method to convert geographic coordinates into Cartesian coordinates. 
-
-- Visualization waypoints in robot frame 
-
-    <div style="display: flex; justify-content: center;">
-      <div style="flex: 1; margin-right: 10px;">
-          <img src="./paltech_assignment/imgs/waypoints.png" alt="Figure 1" width="400"/>
-          <p style="text-align: center;">Waypoints in robot frame</p>
-      </div>
-    </div>
-
-### Task3: Calibration of Magnetometer sensor
+### Task1: Calibration of Magnetometer sensor
 For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame ([IMU should read 0 for yaw when facing east](https://docs.ros.org/en/melodic/api/robot_localization/html/navsat_transform_node.html)). According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point towrads the north.  
 
 The reading from the Magnetometer sensor can be used to calibrate the robot's orientation. The magnetometer sensor provides the magnetic field vector in the robot's local coordinate frame. However, the magnetometer itself is distorted by magnetic field from the sensor circuit board, and the surounding environment.The two most common distortion are hard iron and soft iron distortion as shown in the following figure.
 <p>
-  <img src="./soft-and-hard.png" height="300" width="auto"/> &nbsp;&nbsp;
+  <img src="./media/soft-and-hard.png" height="300" width="auto"/> &nbsp;&nbsp;
 </p><br>
 
 To correct these distortions, the magnetometer sensor readings can be calibrated using the following steps:
@@ -44,8 +27,8 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
 
  #### Calibration results for both Pomona and Silvanus
   <p>
-  <img src="./pomona.gif" height="500" width="auto"/> &nbsp;&nbsp;
-  <img src="./silvanus.gif" height="500" width="auto"/> &nbsp;&nbsp;
+  <img src="./media/pomona.gif" height="500" width="auto"/> &nbsp;&nbsp;
+  <img src="./media/silvanus.gif" height="500" width="auto"/> &nbsp;&nbsp;
 </p><br>
 
 <table border="1">
@@ -92,6 +75,18 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
 
 **Note:** <font color='lime'>These calibration coefficients can be used for the respective robots in future experiments. However, we recommend recalibrating the magnetometers in both robots with more data to improve the accuracy of the calibration coefficients. 
 </font> <br>
+
+### Task 2: Reading waypoints and Saving waypoints.
+- We implement waypoint_manager to read waypoints from `geojson file` and save to `waypoints/lat_lon.txt` or write gps points manually in `waypoints/lat_lon.txt file`.
+
+### Task 3: Transform to robot coordinate
+- **calibration**: first we callibrate te robot to point east or get the rotation matrix with global east 
+- **Anchor Point**: The robot's starting GPS position is assigned as the anchor point (reference point).
+- **UTM transformation** : We implement function to  transforms geographic coordinates (latitude and longitude) of waypoints into a robot's local Cartesian coordinate using UTM (Universal Transverse Mercator) transformation frame (X, Y coordinates).
+
+ <img src="./media/axis_rep.png" height="300" width="auto"/> &nbsp;&nbsp;
+
+
 ## Part 2: Efficient Waypoint Traversing Path Planning 
 ### Method 1 - Nearest Neighbor Algorithm with Dubins Path Constraints
 To implement the nearest neighbor algorithm, we begin at robot position. From there, we find the closest unvisited waypoint and add it to the sequence. Then, we move to the next node and repeat the process of finding the nearest unvisited node until all nodes are included in the tour.To find the neareast unvisited node we use The `KDTree` class from `scipy.spatial` to find the k nearest neighbors of the current waypoint instead of searching the whole waypoint.
@@ -119,6 +114,19 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
   
   4. **Calculate dubins path**: calculate the dubins path from the approximate tps path , omit points that does not adhere the non holonomic constrain of te robot. 
 
+  The following figure shows optimaized dubins path bettewen waypoints
+
+  <div style="display: flex; justify-content: center;">
+    <div style="flex: 1; margin-right: 10px;">
+        <img src="media/path.png" alt="Figure 2" width="250"/>
+        <p style="text-align: center;"> 8 sample points </p>
+    </div>
+    <div style="flex: 1; margin-right: 10px;">
+        <img src="media/deb_path.png" alt="Figure 2" width="250"/>
+        <p style="text-align: center;"> 8 sample points </p>
+    </div>
+ 
+</div>
 
 ### Obstacle Avoidance Planner and controller  
    
@@ -126,7 +134,7 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
 
    1. **RRT_Planner** : This takes the start and the next waypoint and gives us a efficient  path between the two waypoints considering the obstacle(uses the `StateValidityChecker` to check for state of position and path). 
    2. **State_Validity_Checker**: This class, `StateValidityChecker`, is responsible for checking the validity of individual positions and paths (sequences of positions) with respect to obstacel list.
-   3. **Move Controller**:
+   3. **Move Controller**:publishes velocity to navigate the robot to next point.
 
    #### Method2:  MoveBase ros package Planner 
    1. A* star 
