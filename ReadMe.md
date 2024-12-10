@@ -1,5 +1,42 @@
 # GPS Waypoint Navigation
 
+
+## Group Members
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th align="center">Task</th>
+  </tr>
+  <tr>
+    <td>Zewdie Habtie</td>
+    <td>
+      <pre>
+      - Calibration of Magnetometer sensor
+      - Correcting the distortion in the magnetometer sensor readings
+      - Debugging and testing
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>Eliyas Kidanemariyam</td>
+    <td>
+    <pre>
+      - Configuration of launch files
+      - Prepare simulation environment
+      - Implement latitude and longitude to cartesian points in robot frame
+      </pre>
+    </td>
+  
+  </tr>
+  <tr colspan="2">
+  <td> Both</td>
+  <td> 
+    <pre>
+    - Implement GPS navigation node
+    </pre>
+  </td>
+  </tr>
+</table>
 ## Part 1 : 
 
 ### Task1: Calibration of Magnetometer sensor
