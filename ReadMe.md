@@ -206,7 +206,7 @@ rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigat
     <th align="center">Task</th>
   </tr>
   <tr>
-    <td>Use localization to correct odometry drift</td>
+    <td>Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift</td>
     <td>
       <pre>
     Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
