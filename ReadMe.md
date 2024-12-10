@@ -179,12 +179,12 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
 
 <table border="1">
   <tr>
-    <th width=100 >Taks</th>
-    <th width=100 align="center">Description</th>
+    <th  >Taks</th>
+    <th  align="center">Description</th>
   </tr>
   <tr>
-    <td>   Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift   </td>
-    <td>
+    <td width=100>   Use IMU + Visual-SLAM or Lidar-SLAM to correct odometry drift   </td>
+    <td width=300>
       <pre>
     Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
       </pre>
