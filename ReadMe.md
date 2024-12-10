@@ -197,3 +197,41 @@ source ~/zedeli_ws/devel/setup.bash                          # source the worksp
 rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigation node
 ```
 **Note:** Before running the above commands, make sure to save GPS waypoints in `src/scout_robot_project/scout_robot__2dnav/waypoints/lat_lon.txt` file.
+
+## TODO
+
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th align="center">Task</th>
+  </tr>
+  <tr>
+    <td>Zewdie Habtie</td>
+    <td>
+      <pre>
+      - Calibration of Magnetometer sensor
+      - Correcting the distortion in the magnetometer sensor readings
+      - Debugging and testing
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>Eliyas Kidanemariyam</td>
+    <td>
+    <pre>
+      - Configuration of launch files
+      - Prepare simulation environment
+      - Implement latitude and longitude to cartesian points in robot frame
+      </pre>
+    </td>
+  
+  </tr>
+  <tr colspan="2">
+  <td> Both</td>
+  <td> 
+    <pre>
+    - Implement GPS navigation node
+    </pre>
+  </td>
+  </tr>
+</table>
