@@ -19,8 +19,7 @@ import threading
 class Gps_Navigation:
     def __init__(self):
         # initialize variables
-        ############## for saving gps points ###############
-        self.prev_pose = None
+        ############## for saving gps points ######
         self.current_pose = None
         ######### odometry ########################
         self.x = 0
@@ -35,7 +34,7 @@ class Gps_Navigation:
         self.odom_path = []
         self.waypoints_cart = []
         self.waypoints_gps = []
-        self.dis_tolerance = 0.5
+        self.dis_tolerance = 2
         self.count = 0  # waypoint counter
         self.word_frame = "odom"
         # uncertainty of gps measurements in meters
@@ -62,6 +61,7 @@ class Gps_Navigation:
         self.listener.start()
         self.goal_reached = False
         self.conv = None
+
         # publishers
         # gps and odom path publishers
         self.gps_odom = rospy.Publisher("/gps_odom", Odometry, queue_size=10)
@@ -69,6 +69,7 @@ class Gps_Navigation:
         self.gps_odom_filtered = rospy.Publisher(
             "/gps_odom/filtered", Odometry, queue_size=10
         )
+
         self.gps_path_pub = rospy.Publisher("/gps_path", MarkerArray, queue_size=10)
         self.odom_path_pub = rospy.Publisher("/odom_path", MarkerArray, queue_size=10)
         self.waypoint_viz = rospy.Publisher("/waypoint_viz", MarkerArray, queue_size=10)
@@ -92,6 +93,7 @@ class Gps_Navigation:
             self.navigate = rospy.Timer(rospy.Duration(1), self.waypoint_navigation)
         elif self.mode == 2:
             self.save_gps = rospy.Timer(rospy.Duration(5), self.save_gps_xy)
+
         # avarage the gps data collector
         self.averaged_wp = []
 
@@ -101,6 +103,7 @@ class Gps_Navigation:
         self.latitude = data.latitude
         self.longitude = data.longitude
         self.altitude = data.altitude
+        
         # collect multiple gps point and average them
         while len(self.averaged_wp) < 30:
             self.averaged_wp.append([self.latitude, self.longitude])
@@ -170,7 +173,7 @@ class Gps_Navigation:
                 os.makedirs(dir_path)
 
             file_path = os.path.join(dir_path, "xy.txt")
-            file_path1 = os.path.join(dir_path, "ll.txt")
+            file_path1 = os.path.join(dir_path, "lat_lon.txt")
             self.current_pose = (self.x, self.y)
             if self.prev_pose is None:
                 self.prev_pose = self.current_pose
@@ -286,7 +289,6 @@ class Gps_Navigation:
             myMarker.scale.y = 0.1
             myMarker.scale.z = 0.05
             path_list.append(myMarker)
-        # print("odom_x", self.x, "odom_y", self.y)
         self.odom_path_pub.publish(path_list)
 
     def on_press(self, key):
@@ -320,7 +322,7 @@ class Gps_Navigation:
 
     def read_gps_points(self):
         "read gps waypoints in lat and long then convert to x ,y coordinate"
-        file_path = self.package_path + "/gps_carts/ll.txt"
+        file_path = self.package_path + "/gps_carts/lat_lon.txt"
         if not os.path.exists(file_path):
             print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
             return
@@ -369,17 +371,14 @@ class Gps_Navigation:
 
     # navigate to the next waypoint
     def waypoint_navigation(self, event):
-        """'
+        """
         navigate to the next waypoint
         """
         if self.waypoints_cart == [] and self.start_nav:
             self.read_gps_points()
 
         elif self.count < len(self.waypoints_cart) - 1:
-            waypoint_length = len(self.waypoints_cart)
-            final_goal = self.waypoints_cart[-1]
             for waypoint in self.waypoints_cart:
-                # print("waypoint ", waypoint)
                 goal = PoseStamped()
                 x, y = waypoint
                 self.goal_reached = False
