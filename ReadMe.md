@@ -37,7 +37,6 @@ This repository contains the implementation of GPS waypoint navigation in an out
   </td>
   </tr>
 </table>
-## Part 1 : 
 
 ### Task1: Calibration of Magnetometer sensor
 For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame ([IMU should read 0 for yaw when facing east](https://docs.ros.org/en/melodic/api/robot_localization/html/navsat_transform_node.html)). According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point towrads the north.  
