@@ -103,7 +103,7 @@ class Gps_Navigation:
         self.latitude = data.latitude
         self.longitude = data.longitude
         self.altitude = data.altitude
-        
+
         # collect multiple gps point and average them
         while len(self.averaged_wp) < 30:
             self.averaged_wp.append([self.latitude, self.longitude])
@@ -168,7 +168,7 @@ class Gps_Navigation:
         if self.conv is not None:
             x, y = self.conv.ll_to_cartesian(self.latitude, self.longitude)
             # save to a file
-            dir_path = os.path.join(self.package_path, "gps_carts")
+            dir_path = os.path.join(self.package_path, "waypoints")
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
@@ -322,7 +322,7 @@ class Gps_Navigation:
 
     def read_gps_points(self):
         "read gps waypoints in lat and long then convert to x ,y coordinate"
-        file_path = self.package_path + "/gps_carts/lat_lon.txt"
+        file_path = self.package_path + "/waypoints/lat_lon.txt"
         if not os.path.exists(file_path):
             print("File with GPS points doesn't exist.\n Save GPS points(Shift + ~)")
             return

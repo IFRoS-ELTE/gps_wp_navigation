@@ -22,7 +22,7 @@ def get_waypoints(file_name):
 
     with open(write_path, "w") as file:
         for point in waypoints:
-            file.write(str(point[0]) + " " + str(point[1]) + "\n")
+            file.write(str(point[0]) + "," + str(point[1]) + "\n")
 
     return np.array(waypoints)
 
