@@ -23,7 +23,7 @@ This repository contains the implementation of GPS waypoint navigation in an out
     <pre>
       - Configuration of launch files
       - Prepare simulation environment
-      - Implement latitude and longitude to cartesian points in robot frame
+      - Implement latitude and longitude to cartesian points in the robot frame
       </pre>
     </td>
   
@@ -202,36 +202,16 @@ rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigat
 
 <table border="1">
   <tr>
-    <th>Name</th>
+    <th>Taks</th>
     <th align="center">Task</th>
   </tr>
   <tr>
-    <td>Zewdie Habtie</td>
+    <td>Use localization to correct odometry drift</td>
     <td>
       <pre>
-      - Calibration of Magnetometer sensor
-      - Correcting the distortion in the magnetometer sensor readings
-      - Debugging and testing
+      - Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
       </pre>
     </td>
   </tr>
-  <tr>
-    <td>Eliyas Kidanemariyam</td>
-    <td>
-    <pre>
-      - Configuration of launch files
-      - Prepare simulation environment
-      - Implement latitude and longitude to cartesian points in robot frame
-      </pre>
-    </td>
-  
-  </tr>
-  <tr colspan="2">
-  <td> Both</td>
-  <td> 
-    <pre>
-    - Implement GPS navigation node
-    </pre>
-  </td>
   </tr>
 </table>
