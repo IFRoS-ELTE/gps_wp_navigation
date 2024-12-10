@@ -1,5 +1,5 @@
 # GPS Waypoint Navigation
-This repository contains the implementation of GPS waypoint navigation in an outdoor environment using Odoemtry, and magnetometer reading.
+This repository contains the implementation of GPS waypoint navigation in an outdoor environment using Odoemtry, and magnetometer reading. It also includes dynamic obstacle avoidance using the DWA local planner included in the move base ros package.
 
 ## Group Members
 <table border="1">
