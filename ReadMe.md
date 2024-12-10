@@ -150,13 +150,13 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
 
   The following figure shows optimaized dubins path bettewen waypoints
 
-  <div style="display: flex; justify-content: center;">
-    <div style="flex: 1; margin-right: 10px;">
-        <img src="media/path.png" alt="Figure 2" width="250"/>
+  <div style="display: flex; gap: 20px;">
+    <div>
+        <img src="media/path.png" alt="Figure 2" height="500"width="auto"/>
         <p style="text-align: center;"> 8 sample points </p>
     </div>
-    <div style="flex: 1; margin-right: 10px;">
-        <img src="media/deb_path.png" alt="Figure 2" width="250"/>
+    <div>
+        <img src="media/deb_path.png" alt="Figure 2" height="500" width="auto"/>
         <p style="text-align: center;"> 8 sample points </p>
     </div>
  
@@ -209,9 +209,19 @@ rosrun scout_robot__2dnav gps_navigation_node.py             # Start the navigat
     <td>Use localization to correct odometry drift</td>
     <td>
       <pre>
-      - Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
+    Due to the drift in odometry, the robot stops approximately 4m away from the goal in waypoint navigation
       </pre>
     </td>
   </tr>
   </tr>
 </table>
+
+## Simulation
+  <p>
+  <img src="./simulation1.gif" height="500" width="auto"/> &nbsp;&nbsp;
+</p><br>
+
+## Real Robot
+  <p>
+  <img src="./real_robot_gps.gif" height="500" width="auto"/> &nbsp;&nbsp;
+</p><br>
