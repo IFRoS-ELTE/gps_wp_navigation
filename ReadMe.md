@@ -51,11 +51,9 @@ To correct these distortions, the magnetometer sensor readings can be calibrated
 2. **Compute calibration coefficients**: Use the collected data to compute the calibration coefficients. The calibration coefficients are used to correct the distortions in the magnetometer sensor readings. Different tools such as [magcal](https://www.mathworks.com/help/nav/ref/magcal.html) can be used to compute the calibration coefficients.
 
 The equation is:
-$$ 
-C = (D - b) \cdot A
-$$
 
-![Equation](https://latex.codecogs.com/svg.latex?C%20%3D%20(D%20-%20b)%20%5Ccdot%20A)
+
+![Equation](https://latex.codecogs.com/svg.latex?\\textcolor{red}{C%20%3D%20(D%20-%20b)%20\\cdot%20A})
 
 where `C` is the calibrated magnetometer sensor readings, `D` is the raw magnetometer sensor readings, `A` is the soft iron calibration matrix, and `b` is the hard iron calibration vector.
 
