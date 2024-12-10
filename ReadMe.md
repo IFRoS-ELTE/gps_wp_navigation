@@ -166,12 +166,12 @@ This method uses the `NetworkX` library to build a weighted graph between waypoi
    
    #### Method1 : Custome Planner
 
-   1. **RRT_Planner** : This takes the start and the next waypoint and gives us a efficient  path between the two waypoints considering the obstacle(uses the `StateValidityChecker` to check for state of position and path). 
-   2. **State_Validity_Checker**: This class, `StateValidityChecker`, is responsible for checking the validity of individual positions and paths (sequences of positions) with respect to obstacel list.
+   1. **RRT_Planner** : This takes the start and the next waypoint and gives us a efficient  path between the two waypoints considering the obstacle(uses the `StateValidityChecker` to check for the state of position and path). 
+   2. **State_Validity_Checker**: This class, `StateValidityChecker`, is responsible for checking the validity of individual positions and paths (sequences of positions) with respect to the obstacle list.
    3. **Move Controller**:publishes velocity to navigate the robot to next point.
 
    #### Method2:  MoveBase ros package Planner 
-   1. A* star 
+   1.Global plannner
    2. DWA
 
 
