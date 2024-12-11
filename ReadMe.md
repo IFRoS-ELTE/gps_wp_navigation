@@ -23,7 +23,7 @@ This repository contains the implementation of GPS waypoint navigation in an out
     <pre>
       - Configuration of launch files
       - Prepare simulation environment
-      - Implement GPS points to cartesian in the robot frame
+      - Implement GPS points conversion to cartesian in the robot frame
       </pre>
     </td>
   
