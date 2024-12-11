@@ -204,7 +204,7 @@ roslaunch scout_bringup scout_minimal.launch                 # Start the minimal
 
 # In a new terminal
 source ~/zedeli_ws/devel/setup.bash                          # source the workspace
-roslaunch scout_bringup sensors.launch                       # Spawns lidar, gnss
+roslaunch scout_bringup sensors.launch                       # Spawns lidar, gnss, and IMU
 
 # In a new terminal run
 source ~/zedeli_ws/devel/setup.bash                          # source the workspace
