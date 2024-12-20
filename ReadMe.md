@@ -1,5 +1,5 @@
 # GPS Waypoint Navigation
-This repository contains the implementation of GPS waypoint navigation in an outdoor environment using Odoemtry, and magnetometer reading. It also includes dynamic obstacle avoidance using the DWA local planner included in the move base ros package.
+This repository contains the implementation of GPS waypoint navigation in an outdoor environment using Odoemtry, and magnetometer reading. It also includes path planning and dynamic obstacle avoidance using the DWA local planner included in the [move_base](https://wiki.ros.org/move_base) ros package.
 
 ## Group Members
 <table border="1">
@@ -38,7 +38,7 @@ This repository contains the implementation of GPS waypoint navigation in an out
   </tr>
 </table>
 
-### Task1: Calibration of Magnetometer sensor
+### Task1: Calibration of Magnetometer sensor for absolute heading
 For the GPS navigation to work correctly, initial robot orientation must be aligned with the global(earth's) coordinate frame ([IMU should read 0 for yaw when facing east](https://docs.ros.org/en/melodic/api/robot_localization/html/navsat_transform_node.html)). According to [REP 105](https://www.ros.org/reps/rep-0105.html), when using GPS for navigation, the robot's x-axis should point towards the east, and y-axis should point toward the north.  
 
 The reading from the Magnetometer sensor can be used to calibrate the robot's orientation. The magnetometer sensor provides the magnetic field vector in the robot's local coordinate frame. However, the magnetometer itself is distorted by magnetic field from the sensor circuit board and the surrounding environment. The two most common distortions are hard iron and soft iron distortion as shown in the following figure.
@@ -50,7 +50,7 @@ To correct these distortions, the magnetometer sensor readings can be calibrated
 1. **Collect Data**: Collect data from the magnetometer sensor while rotating the robot in all possible directions. Figure-eight motion is a common method to collect data from the magnetometer sensor.
 2. **Compute calibration coefficients**: Use the collected data to compute the calibration coefficients. The calibration coefficients are used to correct the distortions in the magnetometer sensor readings. Different tools such as [magcal](https://www.mathworks.com/help/nav/ref/magcal.html) can be used to compute the calibration coefficients.
 
-The equation is:<br>
+The equation to correct the distortion is:<br>
 $C = (D - b) \\cdot A$
 
 where `C` is the calibrated magnetometer sensor readings, `D` is the raw magnetometer sensor readings, `A` is the soft iron calibration matrix, and `b` is the hard iron calibration vector.
@@ -61,8 +61,47 @@ where `C` is the calibrated magnetometer sensor readings, `D` is the raw magneto
 
  #### Calibration results for both Pomona and Silvanus
   <p>
+<figure
+  style="
+  border: thin #c0c0c0 solid;
+  display: flex;
+  flex-flow: column;
+  padding: 5px;
+  max-width: 220px;
+  margin: auto;
+  "
+  >
   <img src="./media/pomona.gif" height="500" width="auto"/> &nbsp;&nbsp;
+  <figcaption
+    style="
+    background-color: #222;
+    color: #fff;
+    font: italic smaller sans-serif;
+    padding: 3px;
+    text-align: center;
+    "
+    >Pomona calibration</figcaption>
+</figure>
+<figure
+    style="
+    border: thin #c0c0c0 solid;
+    display: flex;
+    flex-flow: column;
+    padding: 5px;
+    max-width: 220px;
+    margin: auto;
+  ">
   <img src="./media/silvanus.gif" height="500" width="auto"/> &nbsp;&nbsp;
+    <figcaption
+    style="
+    background-color: #222;
+    color: #fff;
+    font: italic smaller sans-serif;
+    padding: 3px;
+    text-align: center;
+    ">
+      Silvanus calibration</figcaption>
+</figure>
 </p><br>
 
 <table border="1">
